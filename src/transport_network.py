@@ -20,15 +20,6 @@ class TransportNetwork:
         self.extract_weekend()
         self.convert_times()
 
-    # def process_stop_names(self):
-    #     """Clean up stop names in all related dataframes."""
-    #     for df in [self.stops, self.timetable]:
-    #         df['stop_id'] = df['stop_id'].apply(process_stop_names)
-    #     self.stop_to_stop['stop_id_a'] = self.stop_to_stop['stop_id_a'].apply(process_stop_names)
-    #     self.stop_to_stop['stop_id_b'] = self.stop_to_stop['stop_id_b'].apply(process_stop_names)
-    #     self.stop_to_stop = self.stop_to_stop.drop_duplicates(['stop_id_a', 'stop_id_b'], ignore_index=True)
-    #     self.stops = self.stops.drop_duplicates(['stop_id'], ignore_index=True)
-
     def process_stop_names(self):
         """Clean up stop names in all related dataframes."""
         for df in [self.stops, self.timetable]:
@@ -36,10 +27,10 @@ class TransportNetwork:
         self.stop_to_stop['stop_id_a'] = self.stop_to_stop['stop_id_a'].apply(process_stop_names)
         self.stop_to_stop['stop_id_b'] = self.stop_to_stop['stop_id_b'].apply(process_stop_names)
         
-        print("Before drop_duplicates:", self.stop_to_stop.shape)
+        # print("Before drop_duplicates:", self.stop_to_stop.shape)
         self.stop_to_stop = self.stop_to_stop.drop_duplicates(['stop_id_a', 'stop_id_b'], ignore_index=True)
         self.stop_to_stop = self.stop_to_stop[self.stop_to_stop['stop_id_a'] != self.stop_to_stop['stop_id_b']]
-        print("After drop_duplicates:", self.stop_to_stop.shape)
+        # print("After drop_duplicates:", self.stop_to_stop.shape)
         self.stops = self.stops.drop_duplicates(['stop_id'], ignore_index=True)
 
     def extract_weekend(self):
