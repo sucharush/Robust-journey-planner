@@ -3,6 +3,9 @@ import heapq
 import copy
 from src.util import *
 
+import os
+os.chdir('/home/jovyan/final-project')
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -122,7 +125,8 @@ def yen_ksp(G, start_time, departure_id, destination_id, K=5):
     return paths
 
 def print_paths(paths, id_to_stop):
-    for index, (path, cost) in enumerate(paths):
+    sorted_paths = sorted(paths, key=lambda x: x[1])
+    for index, (path, cost) in enumerate(sorted_paths):
         print(f"Path {index + 1}: Total Cost: {cost} minutes")
         for node, predecessor, time in path:
             if predecessor is None:
