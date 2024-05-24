@@ -3,9 +3,6 @@ import heapq
 import copy
 from src.util import *
 
-import os
-os.chdir('/home/jovyan/final-project')
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
