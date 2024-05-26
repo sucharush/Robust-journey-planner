@@ -6,6 +6,7 @@ from src.util import *
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+# +
 def dijkstra(G, start_time, departure_id, destination_id, preds):
     
     start_time_mins = time_to_minutes2(start_time)
@@ -18,11 +19,7 @@ def dijkstra(G, start_time, departure_id, destination_id, preds):
     if preds != 0:
         predecessor[departure_id] = preds
 
-    # a = 0
-
     while priority_queue:
-        # a+=1
-        # print(a)
         current_time, current_stop = heapq.heappop(priority_queue)
                 
         if current_stop == destination_id:
@@ -37,20 +34,19 @@ def dijkstra(G, start_time, departure_id, destination_id, preds):
                 travel_time = edge_attr['arrival_time_mins'] - departure_time if trip_id != 'walking' else edge_attr['walking_time']
                 total_time = current_time + transfer_time + max(0, departure_time - current_time - transfer_time) + travel_time # current time + wait time + travel time + transfer time
 
-                if total_time < min_arrival_time[neighbor] and departure_time >= current_time+transfer_time:
+                if total_time < min_arrival_time[neighbor] and departure_time >= current_time + transfer_time:
                     min_arrival_time[neighbor] = total_time
                     depart_time[current_stop] = departure_time
                     if transfer_time == 2:
                         transfer_stop = current_stop + "-transfer"
-                        predecessor[transfer_stop] = (current_stop, minutes_to_hours(current_time), 'transfer')
+                        predecessor[transfer_stop] = (current_stop, minutes_to_hours(current_time), 'transfer', minutes_to_hours(current_time + transfer_time))
                         min_arrival_time[transfer_stop] = current_time + transfer_time
-                        predecessor[neighbor] = (transfer_stop, minutes_to_hours(current_time + transfer_time), trip_id)
+                        predecessor[neighbor] = (transfer_stop, minutes_to_hours(current_time + transfer_time), trip_id, minutes_to_hours(departure_time))
                     else:
-                        predecessor[neighbor] = (current_stop, minutes_to_hours(current_time), trip_id)
+                        predecessor[neighbor] = (current_stop, minutes_to_hours(current_time), trip_id, minutes_to_hours(departure_time))
 
                     heapq.heappush(priority_queue, (total_time, neighbor))
 
-    
     # Reconstruct the path
     path = []
     node = destination_id
@@ -64,21 +60,19 @@ def dijkstra(G, start_time, departure_id, destination_id, preds):
     # include the start stop and the edge
     if path:
         start_node = path[0][1][0]  
-        start_edge = (start_node, predecessor[start_node], min_arrival_time[node])
+        start_edge = (start_node, predecessor[start_node], min_arrival_time[start_node])
         path.insert(0, start_edge) 
 
     return path, min_arrival_time[destination_id]
 
-
 def yen_ksp(G, start_time, departure_id, destination_id, K=5):
     paths = []
     path, cost = dijkstra(G, start_time, departure_id, destination_id, 0)
-    paths.append((path, cost-time_to_minutes2(start_time)))
+    paths.append((path, cost - time_to_minutes2(start_time)))
 
     potential_paths = []
 
     for k in range(1, K):
-
         for i in range(len(paths[k-1][0]) - 1):
             spur_node = paths[k-1][0][i][0]
             if spur_node.endswith('-transfer'):
@@ -86,13 +80,13 @@ def yen_ksp(G, start_time, departure_id, destination_id, K=5):
             root_path = paths[k-1][0][:i+1]
 
             removed_edges = []
-            for path in paths: 
-                if path[0][:i+1] == root_path :
+            for path in paths:
+                if path[0][:i+1] == root_path:
                     node_from = path[0][i][0]
                     node_to = path[0][i+1][0]
-                    trip_id_path = path[0][i+1][1][2] 
-                    
-                    if G.has_edge(node_from, node_to): 
+                    trip_id_path = path[0][i+1][1][2]
+
+                    if G.has_edge(node_from, node_to):
                         for key, edge_attr in G[node_from][node_to].items():
                             if edge_attr.get('trip_id') == trip_id_path:
                                 edge_attr_copy = copy.deepcopy(edge_attr)
@@ -101,11 +95,10 @@ def yen_ksp(G, start_time, departure_id, destination_id, K=5):
                                 break
 
             preds = root_path[-1][1] if root_path[-1][1] is not None else 0
-            # preds = 0
-            spur_path, spur_cost = dijkstra(G, minutes_to_hours(root_path[-1][-1]), spur_node, destination_id, preds)                
+            spur_path, spur_cost = dijkstra(G, minutes_to_hours(root_path[-1][-1]), spur_node, destination_id, preds)
 
             total_path = root_path + spur_path[1:]
-            total_cost = total_path[-1][-1] - total_path[0][-1]
+            total_cost = total_path[-1][-1] - time_to_minutes2(start_time)  # Correctly calculate total cost
 
             if total_path not in [p[0] for p in paths + potential_paths]:
                 potential_paths.append((total_path, total_cost))
@@ -125,12 +118,19 @@ def print_paths(paths, id_to_stop):
     sorted_paths = sorted(paths, key=lambda x: x[1])
     for index, (path, cost) in enumerate(sorted_paths):
         print(f"Path {index + 1}: Total Cost: {cost} minutes")
-        for node, predecessor, time in path:
+        for i, (node, predecessor, time) in enumerate(path):
+            node_name = "Transfer" if node.endswith("-transfer") else id_to_stop.get(node, "Unknown")
+            arrival_time = minutes_to_hours(time)
             if predecessor is None:
-                print(f"Depart from {id_to_stop[node]}({node}) at {minutes_to_hours(time)}: ")
+                print(f"Depart from {node_name}({node}) at {arrival_time}: ")
             else:
-                try:
-                    print(f"            {id_to_stop[node]}({node}) at {minutes_to_hours(time)} via {predecessor[2]}")
-                except:
-                    print(f"                          ({node}) at {minutes_to_hours(time)} via {predecessor[2]}")
+                transport_mode = predecessor[2]
+                if i + 1 < len(path) and not path[i + 1][0].endswith("-transfer"):
+                    next_node = path[i + 1][0]
+                    next_predecessor = path[i + 1][1]
+                    departure_time = next_predecessor[3] if next_predecessor and len(next_predecessor) > 3 else arrival_time
+                    print(f"            {node_name}({node}) Arrive at {arrival_time}, Depart at {departure_time} via {transport_mode}")
+                else:
+                    # transfer stop: 
+                    print(f"            {node_name}({node}) Arrive at {arrival_time} via {transport_mode}")
         print()
