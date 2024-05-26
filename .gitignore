@@ -45,10 +45,6 @@ coverage.xml
 # PyCharm
 .idea/
 
-# Ignore data files
-data/*.parquet
-data/*.csv
-
 # Ignore visualization output
 viz_output/
 
