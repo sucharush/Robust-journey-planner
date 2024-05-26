@@ -28,9 +28,7 @@ class TransportNetwork:
         self.stop_to_stop['stop_id_b'] = self.stop_to_stop['stop_id_b'].apply(process_stop_names)
         
         # print("Before drop_duplicates:", self.stop_to_stop.shape)
-        # self.stop_to_stop = self.stop_to_stop.drop_duplicates(['stop_id_a', 'stop_id_b'], ignore_index=True)
-        self.stop_to_stop = self.stop_to_stop.loc[self.stop_to_stop.groupby(
-            ['stop_id_a', 'stop_id_b'])['distance'].idxmax()].reset_index(drop=True)
+        self.stop_to_stop = self.stop_to_stop.drop_duplicates(['stop_id_a', 'stop_id_b'], ignore_index=True)
         self.stop_to_stop = self.stop_to_stop[self.stop_to_stop['stop_id_a'] != self.stop_to_stop['stop_id_b']]
         # print("After drop_duplicates:", self.stop_to_stop.shape)
         self.stops = self.stops.drop_duplicates(['stop_id'], ignore_index=True)
@@ -42,7 +40,7 @@ class TransportNetwork:
 
         self.timetable[weekdays + weekend_cols] = self.timetable[weekdays + weekend_cols].replace({'TRUE': True, 'FALSE': False})
 
-        self.timetable = self.timetable[self.timetable[weekdays].any(axis=1)]
+        self.timetable = self.timetable[~self.timetable[weekdays].any(axis=1)]
 
     def convert_times(self):
         """Convert time columns into minutes past midnight for easier calculations."""
