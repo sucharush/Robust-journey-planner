@@ -1,11 +1,18 @@
 import networkx as nx
 import numpy as np
-import random
 
-import random
+
+# +
+###### 1) sanity check of the graph:
+
+# no zero cycles
+# edge weight >= 0
+# walking weight > 0
+# -
 
 def graph_sanity_check(G):
     # A sanity check for our graph
+
     failed_checks = []  
 
     for node in list(G.nodes()):
@@ -38,5 +45,3 @@ def graph_sanity_check(G):
             print(f"From {source} to {target} with data {data}: {message}")
     else:
         print(f"Graph with {G.number_of_nodes()} nodes passed the sanity check!")
-
-
