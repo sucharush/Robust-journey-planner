@@ -123,6 +123,7 @@ def yen_ksp(G, start_time, departure_id, destination_id, K=5):
     return paths
 
 
+
 def print_paths(paths, id_to_stop):
     sorted_paths = sorted(paths, key=lambda x: x[1])
     for index, (path, cost) in enumerate(sorted_paths):
@@ -194,4 +195,5 @@ def print_paths(paths, id_to_stop, stop_info, limit = None):
         
         arrival_node, _, arrival_time = path[-1]
         print(f"Arrival at {id_to_stop[arrival_node]}({arrival_node}) at {minutes_to_hours(arrival_time)}")
+
 
