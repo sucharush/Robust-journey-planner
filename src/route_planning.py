@@ -28,16 +28,19 @@ def dijkstra(G, start_time, departure_id, destination_id, preds):
             for key, edge_attr in G[current_stop][neighbor].items():
                 trip_id = edge_attr['trip_id']
                 # transfer time at the same stop
-                transfer_time = 2 if trip_id != 'walking' and predecessor[current_stop] and predecessor[current_stop][2] != trip_id else 0
-                # transfer_time = 2 if predecessor[current_stop] and predecessor[current_stop][2] != trip_id else 0
+                transfer_time = 1 if trip_id != 'walking' and predecessor[current_stop] and \
+                                        predecessor[current_stop][2] != trip_id and predecessor[current_stop][2] != "walking" else 0
                 departure_time = edge_attr['departure_time_mins'] if trip_id != 'walking' else current_time
                 travel_time = edge_attr['arrival_time_mins'] - departure_time if trip_id != 'walking' else edge_attr['walking_time']
                 total_time = current_time + transfer_time + max(0, departure_time - current_time - transfer_time) + travel_time # current time + wait time + travel time + transfer time
-
-                if total_time < min_arrival_time[neighbor] and departure_time >= current_time + transfer_time:
+                # step for transfer/walking
+                step = 1 if transfer_time > 0 or trip_id == 'walking' else 0
+                min_departure_time = current_time + transfer_time + step
+                
+                if total_time < min_arrival_time[neighbor] and departure_time >= min_departure_time:
                     min_arrival_time[neighbor] = total_time
                     depart_time[current_stop] = departure_time
-                    if transfer_time == 2:
+                    if transfer_time > 0:
                         transfer_stop = current_stop + "-transfer"
                         predecessor[transfer_stop] = (current_stop, minutes_to_hours(current_time), 'transfer', minutes_to_hours(current_time + transfer_time))
                         min_arrival_time[transfer_stop] = current_time + transfer_time
