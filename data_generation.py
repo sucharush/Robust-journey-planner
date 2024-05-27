@@ -172,7 +172,7 @@ cur.execute(query)
 # +
 query = f"""SELECT * FROM {username}.sbb_orc_2024_01_last_week
 WHERE haltestellen_name in (SELECT stop_name FROM {username}.sbb_stops_lausanne_region)
- LIMIT 10 """
+"""
 
 stop_times_real = pd.read_sql(query,conn)
 # -
