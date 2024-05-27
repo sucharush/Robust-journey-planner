@@ -34,13 +34,14 @@ def dijkstra(G, start_time, departure_id, destination_id, preds):
                 travel_time = edge_attr['arrival_time_mins'] - departure_time if trip_id != 'walking' else edge_attr['walking_time']
                 total_time = current_time + transfer_time + max(0, departure_time - current_time - transfer_time) + travel_time # current time + wait time + travel time + transfer time
                 # step for transfer/walking
-                step = 1 if transfer_time > 0 or trip_id == 'walking' else 0
-                min_departure_time = current_time + transfer_time + step
+                transfer_step = 1 if transfer_time == 1 else 0
+                walking_step = 1 if predecessor[current_stop] and predecessor[current_stop][2] == 'walking' else 0
+                min_departure_time = current_time + transfer_time + transfer_step + walking_step
                 
                 if total_time < min_arrival_time[neighbor] and departure_time >= min_departure_time:
                     min_arrival_time[neighbor] = total_time
                     depart_time[current_stop] = departure_time
-                    if transfer_time > 0:
+                    if transfer_time == 1:
                         transfer_stop = current_stop + "-transfer"
                         predecessor[transfer_stop] = (current_stop, minutes_to_hours(current_time), 'transfer', minutes_to_hours(current_time + transfer_time))
                         min_arrival_time[transfer_stop] = current_time + transfer_time
@@ -89,6 +90,7 @@ def yen_ksp(G, start_time, departure_id, destination_id, K=5):
                 continue
             root_path = paths[k-1][0][:i+1]
 
+
             removed_edges = []
             for path in paths:
                 if path[0][:i+1] == root_path:
@@ -125,37 +127,6 @@ def yen_ksp(G, start_time, departure_id, destination_id, K=5):
 
     return paths
 
-
-
-def print_paths(paths, id_to_stop):
-    sorted_paths = sorted(paths, key=lambda x: x[1])
-    for index, (path, cost) in enumerate(sorted_paths):
-        print(f"Path {index + 1}: Total Cost: {cost} minutes")
-        for i, (node, predecessor, time) in enumerate(path):
-            node_name = "Transfer" if node.endswith("-transfer") else id_to_stop.get(node, "Unknown")
-            arrival_time = minutes_to_hours(time)
-            if predecessor is None:
-                # for the first stop
-                if i + 1 < len(path):
-                    next_predecessor = path[i + 1][1]
-                    if next_predecessor and len(next_predecessor) > 3:
-                        departure_time = next_predecessor[3]
-                    else:
-                        departure_time = arrival_time
-                else:
-                    departure_time = arrival_time
-                print(f"Depart from {node_name}({node}) at {departure_time}: ")
-            else:
-                transport_mode = predecessor[2]
-                if i + 1 < len(path) and not path[i + 1][0].endswith("-transfer"):
-                    next_node = path[i + 1][0]
-                    next_predecessor = path[i + 1][1]
-                    departure_time = next_predecessor[3] if next_predecessor and len(next_predecessor) > 3 else arrival_time
-                    print(f"            {node_name}({node}) Arrive at {arrival_time}, Depart at {departure_time} via {transport_mode}")
-                else:
-                    # transfer stop
-                    print(f"            {node_name}({node}) Arrive at {arrival_time} via {transport_mode}")
-        print()
 
 
 # +
