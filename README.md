@@ -1,5 +1,5 @@
 # Robust Journey Planning
-**Summary:** This is a robust journey planner for public transport that works across different regions of Switzerland. A user can simply select arrival & departure stops, time of departure, preferred time of arrival, and a minimal level of confidence at which the user wants a journey to succeed. After that, the model will crunch a large amount of data and predict the most optimal routes for a user to choose from.
+**Summary:** This is a robust journey planner for public transport that works across different regions of Switzerland. A user can simply select arrival & departure stops, time of departure, preferred time of arrival, and a minimal level of confidence at which the user wants a journey to succeed. After that, the model will crunch a large amount of data and predict a set of routes for a user to choose from.
 
 ## Team members
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 ## How-to
 ### Generating the Dataset
-Settle the dataset by executing the file `./data_generation.ipynb`. Select area by changing the `object_id` at the top of the notebook
+Settle the dataset by executing the file `./data_generation.py`. Select the area by changing the `object_id` at the top of the file.
 ```shell
 python data_generation.py
 ```

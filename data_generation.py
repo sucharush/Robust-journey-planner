@@ -120,10 +120,6 @@ WHERE
     ST_Contains(b.geometry, ST_Point(stop_lon,stop_lat))
 """)
 
-cur.execute(f'SHOW TABLES IN {username}')
-result = cur.fetchall()
-print(result)
-
 # ### Real Time Table Generation (istdaten) from last week of January 2024
 
 # Create table with istdaten data from January 2024
