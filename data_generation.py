@@ -13,10 +13,10 @@
 # ---
 
 # ## This file generates the following tables:
-# - `stops.csv`
-# - `stop_to_stop.csv`
-# - `sbb_real_stop_times.parquet`
-# - `sbb_timetable_stop_times.parquet` 
+# - `stops.csv`: stops in the selected area.
+# - `stop_to_stop.csv`: stop pairs within the walking distance (500m).
+# - `sbb_real_stop_times.parquet`: corresponding data from the `istdaten` table.
+# - `sbb_timetable_stop_times.parquet`: corresponding scheduled timetable data.
 
 # ## Choose the region
 
@@ -70,7 +70,7 @@ cur.execute("CREATE TEMPORARY FUNCTION ST_PointFromWKB AS 'com.esri.hadoop.hive.
 cur.execute("CREATE TEMPORARY FUNCTION ST_GeomFromWKB AS 'com.esri.hadoop.hive.ST_GeomFromWKB'")
 cur.execute("CREATE TEMPORARY FUNCTION ST_Contains AS 'com.esri.hadoop.hive.ST_Contains'")
 
-# ### Hive Table Creation (Same as HW2)
+# ### Hive Table Creation
 
 cur.execute(f"""
 CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stops_lausanne_region
@@ -180,7 +180,7 @@ stop_times_real = pd.read_sql(query,conn)
 
 stop_times_real.to_parquet('./data/sbb_real_stop_times.parquet', index=False, compression='snappy')
 
-# ### Stops Table Creation (Same as HW2)
+# ### Stops Table Creation
 
 # +
 #saving results to csv
@@ -191,7 +191,7 @@ stops_lausanne_2024_01 = pd.read_sql(query,conn)
 stops_lausanne_2024_01.to_csv("./data/stops.csv")
 # -
 
-# ### Stop to Stop Table Creation (Same as HW2)
+# ### Stop to Stop Table Creation
 
 # Do the inner join on sbb_stops_lausanne_region to compute the distance
 query = f"""
