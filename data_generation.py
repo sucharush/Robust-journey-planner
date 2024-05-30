@@ -12,11 +12,16 @@
 #     name: python3
 # ---
 
-# ## This file contains the code to generate the tables below:
-# * `stops.csv`
-# *  `stop_to_stop.csv` 
-# *  `lausanne_timetable_stop_times.parquet`
-# *   `lausanne_real_stop_times_25_01_2024-31_01_2024.parquet` 
+# ## This file generates the following tables:
+# - `stops.csv`
+# - `stop_to_stop.csv`
+# - `sbb_real_stop_times.parquet`
+# - `sbb_timetable_stop_times.parquet` 
+
+# ## Choose the region
+
+# Default is Lausanne region
+object_id = 1
 
 # +
 import os
@@ -101,9 +106,6 @@ STORED AS PARQUET
 
 # ### Filtering stops based on the `object_id` variable
 
-# +
-object_id = 1
-
 cur.execute(f"""
 INSERT OVERWRITE TABLE {username}.sbb_stops_lausanne_region
 SELECT
@@ -117,7 +119,6 @@ WHERE
     AND
     ST_Contains(b.geometry, ST_Point(stop_lon,stop_lat))
 """)
-# -
 
 cur.execute(f'SHOW TABLES IN {username}')
 result = cur.fetchall()

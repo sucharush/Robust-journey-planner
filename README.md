@@ -1,10 +1,14 @@
 # Robust Journey Planning
-**Executive summary:** Build a robust SBB journey planner, and make a short video presentation of it, to be done as a **team project**.
+**Summary:** This is a robust journey planner for public transport that works across different regions of Switzerland. A user can simply select arrival & departure stops, time of departure, prefered time of arrival, and a minimal level of confidence at which the user wants a journey to succeed. After that, the model will crunch a large amount of data and predict the most optimal routes for a user to choose from.
 
 ## Team members
 
 - Siyuan Cheng, siyuan.cheng@epfl.ch
-
+- Ioannis Bantzis, ioannis.bantzis@epfl.ch
+- Aidas Venckunas, aidas.venckunas@epfl.ch
+- Xinyi Ding, xinyi.ding@epfl.ch
+- Jingbang Liu, jingbang.liu@epfl.ch
+- Victoria Catherine Arduini, victoria.arduini@epfl.ch
 
 ## Quickstart
 ### Requirements
@@ -14,12 +18,24 @@ cd final-project
 pip install -r requirements.txt
 ```
 
-## HOW-TO
-This section intentionally blank. Students must complete it with instructions on how to use the code in their project.
-<!-- TODO -->
+### Bootstraping the data
+The data firstly needs to be boostraped. The file that needs to be executed is `./data_generation.ipynb`.
+
+### Running the interactive planner
+Open `./visualization.ipynb` and run all code cells. An interface with an input form will appear.
+
+![image](./img/input_form.png)
+
+Select your prefered inputs, click on `Find Routes` and wait until the routes pop up.
+
+![image](./img/paths.png)
+
+Select a path you like the most and enjoy your trip.
+
+## Implementation details
 
 ### Datasets
-<!-- TODO -->
+
 
 ### Methods
 <!-- TODO -->
@@ -49,6 +65,7 @@ This section intentionally blank. Students must complete it with instructions on
 ├── README.md
 ├── requirements.txt
 ├── data_generation.py
+├── validation-delay.ipynb
 ├── validation.ipynb
 └── vizsualization.ipynb
 
