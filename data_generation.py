@@ -12,11 +12,13 @@
 #     name: python3
 # ---
 
+# + [markdown] jp-MarkdownHeadingCollapsed=true
 # ## This file generates the following tables:
 # - `stops.csv`: stops in the selected area.
 # - `stop_to_stop.csv`: stop pairs within the walking distance (500m).
 # - `sbb_real_stop_times.parquet`: corresponding data from the `istdaten` table.
 # - `sbb_timetable_stop_times.parquet`: corresponding scheduled timetable data.
+# -
 
 # ## Choose the region
 
@@ -73,7 +75,7 @@ cur.execute("CREATE TEMPORARY FUNCTION ST_Contains AS 'com.esri.hadoop.hive.ST_C
 # ### Hive Table Creation
 
 cur.execute(f"""
-CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stops_lausanne_region
+CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stops_region
 (
     stop_id STRING,
     stop_name STRING,
@@ -84,7 +86,7 @@ STORED AS PARQUET
 """)
 
 cur.execute(f"""
-CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stop_to_stop_lausanne_region
+CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stop_to_stop_region
 (
     stop_id_a STRING,
     stop_id_b STRING,
@@ -94,7 +96,7 @@ STORED AS PARQUET
 """)
 
 cur.execute(f"""
-CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stop_times_lausanne_region
+CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stop_times_region
 (
     trip_id STRING,
     stop_id STRING,
@@ -107,7 +109,7 @@ STORED AS PARQUET
 # ### Filtering stops based on the `object_id` variable
 
 cur.execute(f"""
-INSERT OVERWRITE TABLE {username}.sbb_stops_lausanne_region
+INSERT OVERWRITE TABLE {username}.sbb_stops_region
 SELECT
     a.stop_id,
     a.stop_name,
@@ -168,7 +170,7 @@ cur.execute(query)
 
 # +
 query = f"""SELECT * FROM {username}.sbb_orc_2024_01_last_week
-WHERE haltestellen_name in (SELECT stop_name FROM {username}.sbb_stops_lausanne_region)
+WHERE haltestellen_name in (SELECT stop_name FROM {username}.sbb_stops_region)
 """
 
 stop_times_real = pd.read_sql(query,conn)
@@ -180,18 +182,18 @@ stop_times_real.to_parquet('./data/sbb_real_stop_times.parquet', index=False, co
 
 # +
 #saving results to csv
-query = f"""SELECT * FROM {username}.sbb_stops_lausanne_region
+query = f"""SELECT * FROM {username}.sbb_stops_region
             WHERE stop_name in (SELECT DISTINCT haltestellen_name FROM {username}.sbb_orc_2024_01)"""
 
-stops_lausanne_2024_01 = pd.read_sql(query,conn)
-stops_lausanne_2024_01.to_csv("./data/stops.csv")
+stops_2024_01 = pd.read_sql(query,conn)
+stops_2024_01.to_csv("./data/stops.csv")
 # -
 
 # ### Stop to Stop Table Creation
 
-# Do the inner join on sbb_stops_lausanne_region to compute the distance
+# Do the inner join on sbb_stops_region to compute the distance
 query = f"""
-    INSERT OVERWRITE TABLE {username}.sbb_stop_to_stop_lausanne_region
+    INSERT OVERWRITE TABLE {username}.sbb_stop_to_stop_region
     SELECT
         tmp.stop_id_a AS stop_id_a,
         tmp.stop_id_b AS stop_id_b,
@@ -205,9 +207,9 @@ query = f"""
                     ST_SetSRID(ST_LineString(a.stop_lon, a.stop_lat, b.stop_lon, b.stop_lat), 4326)
                 ) AS distance
             FROM
-                {username}.sbb_stops_lausanne_region a
+                {username}.sbb_stops_region a
             JOIN
-                {username}.sbb_stops_lausanne_region b ON a.stop_id != b.stop_id
+                {username}.sbb_stops_region b ON a.stop_id != b.stop_id
         ) tmp
     WHERE
         tmp.distance <= 500
@@ -215,14 +217,14 @@ query = f"""
 cur.execute(query)
 
 cur.execute(f"""
-SELECT COUNT(*) FROM {username}.sbb_stop_to_stop_lausanne_region
+SELECT COUNT(*) FROM {username}.sbb_stop_to_stop_region
 """)
 query_result = cur.fetchall()   
 print("Pair of stops that are within 500m of each other:", query_result[0][0])
 
 #saving results to csv
 query = f"""
-SELECT * FROM {username}.sbb_stop_to_stop_lausanne_region
+SELECT * FROM {username}.sbb_stop_to_stop_region
 """
 stops_to_stops = pd.read_sql(query,conn)
 stops_to_stops.to_csv("./data/stop_to_stop.csv")
@@ -246,12 +248,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {username}.sbb_stop_times_selected_region_ti
 )
 """)
 
-# +
-#Inserting Data into the table for all days
-cur.execute(f"""TRUNCATE TABLE {username}.sbb_stop_times_selected_region_timetable""")
-    
+#Inserting Data into the table for all days  
 query = f"""
-    INSERT INTO {username}.sbb_stop_times_selected_region_timetable
+    INSERT OVERWRITE TABLE {username}.sbb_stop_times_selected_region_timetable
     SELECT DISTINCT
         st.trip_id,
         st.stop_id,
@@ -274,17 +273,14 @@ query = f"""
     WHERE 
         st.stop_id IN (
                 SELECT DISTINCT stop_id 
-                FROM {username}.sbb_stops_lausanne_region)        
+                FROM {username}.sbb_stops_region)        
 
 """
 cur.execute(query)
 # stop_times_timetable = pd.read_sql(query,conn)
-# -
 
 query = f"SELECT * FROM {username}.sbb_stop_times_selected_region_timetable"
 sbb_timetable_stop_times = pd.read_sql(query,conn)
 sbb_timetable_stop_times.to_parquet('./data/sbb_timetable_stop_times.parquet', index=False, compression='snappy')
-
-pd.read_sql(query,conn)
 
 
