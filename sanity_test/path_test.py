@@ -27,7 +27,9 @@ def path_sanity_check(paths):
             if node.endswith("-transfer") and i > 0:
                 previous_arrival_time = path[i - 1][2]
                 previous_arrival_minutes = previous_arrival_time
-                assert arrival_minutes - previous_arrival_minutes >= 2, f"Sanity check failed at path{i}: {node}\
+                # 1 min loose transfer step is already included in the travel time, 
+                # so we only have to guarantee 1 min transfer between stops
+                assert arrival_minutes - previous_arrival_minutes >= 1, f"Sanity check failed at path{i}: {node}\
                 (Transfer arrival time less than 2 minutes after previous arrival: {minutes_to_hours(previous_arrival_minutes)}\
                 to {minutes_to_hours(arrival_minutes)})"
             
